@@ -1,46 +1,42 @@
 # Setup
-# install.packages("tolerance")    # includes: plottol, regtol.int
-# install.packages("readxl")       # includes: read_excel
-# install.packages("qualityTools") # includes: mvPlot, qqPlot, tolerance
-# install.packages("reshape")      # includes: transpose
-# install.packages("RollingWindow") # NOT AVAILABLE FOR R version 3.6.0
-# install.packages("RcppRoll")
+# First open cmd prompt with cmd in search box,
+# Then enter following to activate conda environments
+#     C:\Users\dlhje\anaconda3\Scripts\activate base
 
-## set working folder
-setwd("F:\\Documents\\01_Dave's Stuff\\Engineering\\GitHub_repos\\finance_performance_R")
+print("PYTHONPATH:", os.environ.get('PYTHONPATH'))
+print("PATH:", os.environ.get('PATH'))
 
-## load generic modules
-source("F:\\Documents\\01_Dave's Stuff\\Programs\\GitHub_home\\R-setup\\setup.r")
-## load performance project modules
-modpath <- c("f:/Documents/01_Dave's Stuff/Programs/GitHub_home/finance_performance_R/modules")
-r_files <- list.files(modpath, pattern="*.[rR]$", full.names=TRUE)
-for (f in r_files) {
-  ## cat("f =",f,"\n")
-  source(f)
-}
+# First start anaconda prompt and enter:
+#     conda activate performance
+import pandas as pd
+import os
+
+# Change then confirm working directory
+wdir = "f:/Documents/01_Dave's Stuff/Programs/GitHub_home/finance_performance_R"
+os.chdir(wdir)
+os.getcwd()
 
 ## default origin for Excel since that is the source of date numbers
-## excel <- '1900-01-01'       # this is what I thought it should be but does not work out right
-excel <- '1899-12-30'
-## as.numeric(as.Date(excel))  # returns -25569
-## date_strings <- as.Date(as.numeric(date), origin=excel)
-
-## library(tolerance)
-## library(readxl)
-## library(qualityTools)
-## library(reshape)
-## library(RollingWindow) # try RollingCompound function <-- failed
-## library(RcppRoll)      # try roll_prod                <-- failed
+excel = '1899-12-30'
 
 ##-----------------------------------------------------------------------------
 ## READ DATA
-filename <- 'performance_data_example.xlsx'
-map  <- readall(filename, sheet = 'Map',    header.row=3)
-## account <- map[, c('Account_Number', 'Owner', 'Owner_Group', 'Account_Name')]
-valuesheet <- readall(filename, sheet = 'value', header.row=6, rename=FALSE)
-twrsheet   <- readall(filename, sheet = 'TWR',   header.row=6, rename=FALSE)
+filename = 'performance_data_example.xlsx'
+map = pd.read_excel(filename, sheet_name='Map', header=3)
 
-# ----------------------------------------------------
+
+
+
+
+
+map  <- readall(filename, sheet='Map', header=3)
+## account <- map[, c('Account_Number', 'Owner', 'Owner_Group', 'Account_Name')]
+valuesheet <- readall(filename, sheet = 'value', skip=5, rename=FALSE)
+twrsheet   <- readall(filename, sheet = 'TWR',   skip=5, rename=FALSE)
+
+
+##----------------------------------------------------
+
 ## CREATE ACCOUNT DATAFRAME
 account <- data.frame(number      = map$Account_Number,
                       owner       = map$Owner,
@@ -51,45 +47,21 @@ account$date  <- 0
 account$value <- 0
 account$twr   <- 0
 for (i in 1:nrow(map)) {
-    ## if (i == 9) browser()
-    
-    ## assign date field
-    account$date[i]  <- list( valuesheet[[1]] )
-    
-    valuecol         <- which( names(valuesheet) == map[[i, 'Account_Number']])
-    account$value[i] <- list( valuesheet[[valuecol]] )
-    
-    ## assign twr field
-    twrcol           <- which( names(twrsheet)   == map[[i, 'Account_Number']])
-    account$twr[i]   <- list( twrsheet[[twrcol]] )
-}
-
-##----------------------------------------------------
-
-## COMBINE ACCOUNTS AS NEEDED
-combine <- function(name, combine, all = account) {
-  ## name    = name for new combined 'account'
-  ## combine = vector with the indices of accounts to be combined
-  value <- 0
-  for (i in combine) {
-      value <- value + all$value[i]
-  }
+  ## if (i == 9) browser()
   
-    for (idate in 1:length(all$date) {
-        
-        for (i in combine) {
-            value <- value + all$value[i]
-            twr   <- twr 
-        }
-    }
+  ## assign date field
+  account$date[i]  <- list( valuesheet[[1]] )
+  
+  ## assign value field
+  valuecol         <- which( names(valuesheet) == map[[i, 'Account_Number']])
+  account$value[i] <- list( valuesheet[[valuecol]] )
+  
+  ## assign twr field
+  twrcol           <- which( names(twrsheet)   == map[[i, 'Account_Number']])
+  account$twr[i]   <- list( twrsheet[[twrcol]] )
 }
-# combine('one and two', c(1,2))
-
-##----------------------------------------------------
 
 
-
-        
 ## extract data for plotting
 df <- plotdata(3,2)
 
